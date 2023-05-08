@@ -6158,7 +6158,7 @@ module Crystal
             unexpected_token
           end
         when .class_var?
-          class_var = ClassVar.new(@token.value.to_s).at(location)
+          class_var = ClassVar.new(@token.value.to_s).at(location).at_end(token_end_location)
 
           next_token_skip_space
           check :OP_EQ
