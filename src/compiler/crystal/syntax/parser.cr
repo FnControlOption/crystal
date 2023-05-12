@@ -6163,7 +6163,7 @@ module Crystal
           next_token_skip_space_or_newline
           value = parse_op_assign
 
-          members << Assign.new(class_var, value).at(class_var)
+          members << Assign.new(class_var, value)
         when .op_lcurly_lcurly?
           members << parse_percent_macro_expression
         when .op_lcurly_percent?

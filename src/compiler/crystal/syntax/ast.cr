@@ -826,6 +826,10 @@ module Crystal
       @value.accept visitor
     end
 
+    def location
+      @location || target.location
+    end
+
     def end_location
       @end_location || value.end_location
     end
