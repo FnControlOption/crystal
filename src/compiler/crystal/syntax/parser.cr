@@ -3564,7 +3564,7 @@ module Crystal
         check_valid_def_name
         name = @token.value.to_s
 
-        equals_sign, _ = consume_def_equals_sign
+        equals_sign, end_location = consume_def_equals_sign
         name = "#{name}=" if equals_sign
         last_was_space = @token.type.space?
         skip_space
@@ -3596,7 +3596,7 @@ module Crystal
           name = @token.value.to_s
 
           name_location = @token.location
-          equals_sign, _ = consume_def_equals_sign
+          equals_sign, end_location = consume_def_equals_sign
           name = "#{name}=" if equals_sign
           last_was_space = @token.type.space?
           skip_space
