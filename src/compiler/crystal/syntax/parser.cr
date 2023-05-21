@@ -3927,7 +3927,7 @@ module Crystal
 
         case @token.type
         when .magic?
-          default_value = MagicConstant.new(@token.type).at(@token.location)
+          default_value = MagicConstant.new(@token.type).at(@token.location).at_end(token_end_location)
           next_token
         else
           @no_type_declaration += 1
