@@ -2897,5 +2897,19 @@ module Crystal
       node = Parser.parse(source).as(Annotation).path
       node_source(source, node).should eq("::Foo")
     end
+
+    it "sets correct location of magic constant used as default parameter value" do
+      source = "def foo(bar = __LINE__) end"
+      node = Parser.parse(source).as(Def).args.first.as(Arg).default_value.not_nil!
+      node_source(source, node).should eq("__LINE__")
+
+      source = "def foo(bar = __FILE__) end"
+      node = Parser.parse(source).as(Def).args.first.as(Arg).default_value.not_nil!
+      node_source(source, node).should eq("__FILE__")
+
+      source = "def foo(bar = __DIR__) end"
+      node = Parser.parse(source).as(Def).args.first.as(Arg).default_value.not_nil!
+      node_source(source, node).should eq("__DIR__")
+    end
   end
 end
