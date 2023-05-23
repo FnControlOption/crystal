@@ -2911,5 +2911,15 @@ module Crystal
       node = Parser.parse(source).as(Def).args.first.as(Arg).default_value.not_nil!
       node_source(source, node).should eq("__DIR__")
     end
+
+    it "sets correct location of block using short one-parameter syntax" do
+      source = "foo(&.bar)"
+      node = Parser.parse(source).as(Call).block.not_nil!
+      node_source(source, node).should eq("&.bar")
+
+      source = "foo(&.@bar)"
+      node = Parser.parse(source).as(Call).block.not_nil!
+      node_source(source, node).should eq("&.@bar")
+    end
   end
 end
