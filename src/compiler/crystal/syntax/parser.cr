@@ -5445,6 +5445,7 @@ module Crystal
     end
 
     def parse_asm
+      location = @token.location
       next_token_skip_space
       check :OP_LPAREN
       next_token_skip_space_or_newline
@@ -5490,10 +5491,11 @@ module Crystal
       end
 
       check :OP_RPAREN
+      end_location = token_end_location
 
       next_token_skip_space
 
-      Asm.new(text, outputs, inputs, clobbers, volatile, alignstack, intel, can_throw)
+      Asm.new(text, outputs, inputs, clobbers, volatile, alignstack, intel, can_throw).at(location).at_end(end_location)
     end
 
     def parse_asm_operands
