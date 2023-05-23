@@ -2728,6 +2728,7 @@ module Crystal
     end
 
     def parse_case
+      location = @token.location
       slash_is_regex!
       next_token_skip_space_or_newline
       while @token.type.op_semicolon?
@@ -2760,7 +2761,7 @@ module Crystal
             raise "expected 'when', not 'in'"
           end
 
-          location = @token.location
+          when_location = @token.location
           slash_is_regex!
           next_token_skip_space_or_newline
           when_conds = [] of ASTNode
@@ -2823,7 +2824,7 @@ module Crystal
 
           when_body = parse_expressions
           skip_space_or_newline
-          whens << When.new(when_conds, when_body).at(location)
+          whens << When.new(when_conds, when_body).at(when_location)
         when Keyword::ELSE
           if exhaustive
             raise "exhaustive case (case ... in) doesn't allow an 'else'"
@@ -2833,9 +2834,11 @@ module Crystal
           a_else = parse_expressions
           skip_statement_end
           check_ident :end
+          end_location = token_end_location
           next_token
           break
         when Keyword::END
+          end_location = token_end_location
           next_token
           break
         else
@@ -2843,7 +2846,7 @@ module Crystal
         end
       end
 
-      Case.new(cond, whens, a_else, exhaustive.nil? ? false : exhaustive)
+      Case.new(cond, whens, a_else, exhaustive.nil? ? false : exhaustive).at(location).at_end(end_location)
     end
 
     def check_valid_exhaustive_expression(exp)
