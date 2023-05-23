@@ -910,7 +910,7 @@ module Crystal
         next_token_skip_space
       else
         type = parse_union_type
-        end_location = token_end_location
+        end_location = type.end_location
       end
 
       klass.new(atomic, type).at_end(end_location)
