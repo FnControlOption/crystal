@@ -4772,15 +4772,15 @@ module Crystal
 
     def parse_call_args_named_args(location, args, first_name, allow_newline)
       named_args = parse_named_args(location, first_name: first_name, allow_newline: allow_newline)
+      end_location = named_args.last.end_location
 
       if call_block_arg_follows?
         return parse_call_block_arg(args, check_paren: allow_newline, named_args: named_args)
       end
 
-      check :OP_RPAREN if allow_newline
-      end_location = token_end_location
-
       if allow_newline
+        check :OP_RPAREN
+        end_location = token_end_location
         next_token_skip_space
       else
         skip_space
