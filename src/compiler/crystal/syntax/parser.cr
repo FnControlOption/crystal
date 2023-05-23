@@ -793,7 +793,7 @@ module Crystal
             atomic = Call.new atomic, name, (args || [] of ASTNode), block, block_arg, named_args
             atomic.has_parentheses = has_parentheses
             atomic.name_location = name_location
-            atomic.end_location = block.try(&.end_location) || call_args.try(&.end_location) || end_location
+            atomic.end_location = call_end_location(call_args, block) || end_location
             atomic.at(location)
             atomic
           end
@@ -1579,7 +1579,8 @@ module Crystal
 
         call ||= parse_call_block_arg_after_dot(obj)
 
-        block = Block.new([Var.new(block_arg_name)], call).at(location)
+        block = Block.new([Var.new(block_arg_name)], call).at(location).at_end(call)
+        block.short_syntax = true
       else
         block_arg = parse_op_assign
       end
@@ -4389,7 +4390,7 @@ module Crystal
         end
       node.doc = doc
       node.location = location
-      node.end_location = block.try(&.end_location) || call_args.try(&.end_location) || end_location
+      node.end_location = call_end_location(call_args, block) || end_location
       node
     end
 
@@ -4604,6 +4605,14 @@ module Crystal
       stopped_on_do_after_space : Bool,
       end_location : Location?,
       has_parentheses : Bool
+
+    def call_end_location(call_args : CallArgs?, block : Block?) : Location?
+      if call_args.try(&.block.try(&.short_syntax?))
+        call_args.try(&.end_location) || block.try(&.end_location)
+      else
+        block.try(&.end_location) || call_args.try(&.end_location)
+      end
+    end
 
     def parse_call_args(stop_on_do_after_space = false, allow_curly = false, control = false)
       case @token.type
