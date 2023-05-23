@@ -1584,7 +1584,7 @@ module Crystal
         block_arg = parse_op_assign
       end
 
-      end_location = token_end_location
+      end_location = block.try(&.end_location) || block_arg.try(&.end_location)
 
       if check_paren
         skip_space_or_newline
