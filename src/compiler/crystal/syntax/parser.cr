@@ -1628,6 +1628,7 @@ module Crystal
         if @token.type.op_eq? && call.is_a?(Call)
           next_token_skip_space
           exp = parse_op_assign
+          call.at_end(exp)
           call.name = "#{call.name}="
           call.args << exp
         end
@@ -1651,12 +1652,14 @@ module Crystal
             next_token_skip_space
             exp = parse_op_assign
             check :OP_RPAREN
+            call.at_end(token_end_location)
             next_token_skip_space
             call.name = "#{call.name}="
             call.args = [exp] of ASTNode
             call = parse_atomic_method_suffix call, location
           else
             exp = parse_op_assign
+            call.at_end(exp)
             call.name = "#{call.name}="
             call.args = [exp] of ASTNode
           end
@@ -1666,6 +1669,7 @@ module Crystal
           if @token.type.op_eq? && call.is_a?(Call) && call.name == "[]"
             next_token_skip_space
             exp = parse_op_assign
+            call.at_end(exp)
             call.name = "#{call.name}="
             call.args << exp
           end
