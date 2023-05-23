@@ -2951,6 +2951,7 @@ module Crystal
     end
 
     def parse_select
+      location = @token.location
       slash_is_regex!
       next_token_skip_space
       skip_statement_end
@@ -2963,10 +2964,10 @@ module Crystal
           slash_is_regex!
           next_token_skip_space_or_newline
 
-          location = @token.location
+          expr_location = @token.location
           condition = parse_op_assign_no_control
           unless valid_select_when?(condition)
-            raise "invalid select when expression: must be an assignment or call", location
+            raise "invalid select when expression: must be an assignment or call", expr_location
           end
 
           skip_space
@@ -2988,12 +2989,14 @@ module Crystal
           a_else = parse_expressions
           skip_statement_end
           check_ident :end
+          end_location = token_end_location
           next_token
           break
         when Keyword::END
           if whens.empty?
             unexpected_token "expecting when, else or end"
           end
+          end_location = token_end_location
           next_token
           break
         else
@@ -3001,7 +3004,7 @@ module Crystal
         end
       end
 
-      Select.new(whens, a_else)
+      Select.new(whens, a_else).at(location).at_end(end_location)
     end
 
     def valid_select_when?(node)
