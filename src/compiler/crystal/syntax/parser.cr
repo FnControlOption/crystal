@@ -607,6 +607,8 @@ module Crystal
 
             # Go back to the +/-, advance one char and continue from there
             self.current_pos = @token.start + 1
+            @line_number = @token.location.line_number
+            @column_number = @token.location.column_number + 1
             next_token
 
             right = parse_mul_or_div
