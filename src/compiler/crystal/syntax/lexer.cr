@@ -1428,7 +1428,6 @@ module Crystal
     def next_string_token(delimiter_state)
       reset_token
 
-      @token.line_number = @line_number
       @token.delimiter_state = delimiter_state
 
       start = current_pos
@@ -1517,18 +1516,16 @@ module Crystal
               end
             when '\r', '\n'
               handle_slash_r_slash_n_or_slash_n
-              incr_line_number
-              @token.line_number = @line_number
+              incr_line_number 0
 
               # Skip until the next non-whitespace char
               while true
-                char = next_char
-                case char
+                case next_char
                 when '\0'
                   raise_unterminated_quoted delimiter_state
-                when '\n'
-                  incr_line_number
-                  @token.line_number = @line_number
+                when '\r', '\n'
+                  handle_slash_r_slash_n_or_slash_n
+                  incr_line_number 0
                 when .ascii_whitespace?
                   # Continue
                 else
