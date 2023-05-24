@@ -4,8 +4,8 @@ private def regex(string, options = Regex::CompileOptions::None)
   RegexLiteral.new(StringLiteral.new(string), options)
 end
 
-private def it_parses(string, expected_node, file = __FILE__, line = __LINE__, *, focus : Bool = false)
-  it "parses #{string.dump}", file, line, focus: focus do
+private def it_parses(string, expected_node, file = __FILE__, line = __LINE__, end_line = __END_LINE__, focus : Bool = false)
+  it "parses #{string.dump}", file, line, end_line, focus do
     parser = Parser.new(string)
     parser.filename = "/foo/bar/baz.cr"
     node = parser.parse
@@ -20,6 +20,11 @@ private def it_parses(string, expected_node, file = __FILE__, line = __LINE__, *
 
     node.should eq(Expressions.from(local_expected_node))
   end
+
+  return if string.includes? "<<-"
+
+  source = string.strip("; \n")
+  assert_end_location source, file, line, end_line, focus
 end
 
 private def location_to_index(string, location)
@@ -31,6 +36,8 @@ private def location_to_index(string, location)
 end
 
 private def source_between(string, loc, end_loc)
+  loc.should_not be_nil, "Missing location"
+  end_loc.should_not be_nil, "Missing end location"
   beginning = location_to_index(string, loc.not_nil!)
   ending = location_to_index(string, end_loc.not_nil!)
   string[beginning..ending]
@@ -40,11 +47,16 @@ private def node_source(string, node)
   source_between(string, node.location, node.end_location)
 end
 
-private def assert_end_location(source, line_number = 1, column_number = source.size, file = __FILE__, line = __LINE__)
-  it "gets corrects end location for #{source.inspect}", file, line do
+private def assert_end_location(source, file = __FILE__, line = __LINE__, end_line = __END_LINE__, focus : Bool = false)
+  lines = source.split('\n')
+  line_number = lines.size
+  column_number = lines.last.size
+  it "gets corrects end location for #{source.inspect}", file, line, end_line, focus do
     string = "#{source}; 1"
     parser = Parser.new(string)
-    node = parser.parse.as(Expressions).expressions[0]
+    expressions = parser.parse.as(Expressions).expressions
+    expressions.pop
+    node = Expressions.from(expressions)
     node_source(string, node).should eq(source)
     end_loc = node.end_location.not_nil!
     end_loc.line_number.should eq(line_number)
@@ -2292,10 +2304,10 @@ module Crystal
       assert_end_location "x : Foo(A, *B, C)"
       assert_end_location "Int[8]?"
       assert_end_location "[1, 2,]"
-      assert_end_location "foo(\n  &.block\n)", line_number: 3, column_number: 1
+      assert_end_location "foo(\n  &.block\n)"
       assert_end_location "foo.bar(x) do; end"
       assert_end_location "%w(one two)"
-      assert_end_location "{%\nif foo\n  bar\n end\n%}", line_number: 5, column_number: 2
+      assert_end_location "{%\nif foo\n  bar\n end\n%}"
       assert_end_location "foo bar, out baz"
       assert_end_location "Foo?"
       assert_end_location "foo : Foo.class"
