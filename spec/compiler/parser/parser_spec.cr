@@ -2417,6 +2417,8 @@ module Crystal
       assert_end_location "case foo when a then b end"
       assert_end_location "case foo when a then b else c end"
       assert_end_location %(asm("nop"))
+      assert_end_location "1+2"
+      assert_end_location "1-2"
 
       assert_syntax_error %({"a" : 1}), "space not allowed between named argument name and ':'"
       assert_syntax_error %({"a": 1, "b" : 2}), "space not allowed between named argument name and ':'"
