@@ -5833,8 +5833,8 @@ module Crystal
 
         if @token.type.op_colon?
           next_token_skip_space_or_newline
-          end_location = token_end_location
           return_type = parse_bare_proc_type
+          end_location = return_type.end_location
         end
 
         skip_statement_end
