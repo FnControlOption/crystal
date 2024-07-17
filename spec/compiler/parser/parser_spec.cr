@@ -61,6 +61,70 @@ private def assert_end_location(source, file = __FILE__, line = __LINE__, end_li
     end_loc = node.end_location.not_nil!
     end_loc.line_number.should eq(line_number)
     end_loc.column_number.should eq(column_number)
+    node.accept(LocationValidator.new(string))
+  end
+end
+
+private class LocationValidator < Crystal::Visitor
+  @ancestor_stack = [] of Crystal::ASTNode
+
+  def initialize(@source : String)
+  end
+
+  def visit(node)
+    node_begin = node.location
+    node_end = node.end_location
+    if node_begin.nil? || node_end.nil?
+      @ancestor_stack.push node
+      return true
+    end
+
+    node_begin.should be <= node_end
+
+    node_source = source_between(@source, node_begin, node_end)
+    node_info = <<-MSG
+      #{node.class_desc}:
+        source: #{node_source.inspect}
+        to_s:   #{node.to_s.inspect}
+      MSG
+
+    @ancestor_stack.each do |ancestor|
+      ancestor_begin = ancestor.location
+      ancestor_end = ancestor.end_location
+      next if ancestor_begin.nil? || ancestor_end.nil?
+
+      ancestor_source = source_between(@source, ancestor_begin, ancestor_end)
+      ancestor_info = <<-MSG
+        #{ancestor.class_desc}:
+          source: #{ancestor_source.inspect}
+          to_s:   #{ancestor.to_s.inspect}
+        MSG
+
+      ancestor_begin.should be <= node_begin, failure_message: <<-MSG
+        Expected #{ancestor.class_desc} location (#{ancestor_begin}) \
+        to be <= #{node.class_desc} location (#{node_begin})
+
+        #{ancestor_info}
+
+        #{node_info}
+        MSG
+
+      node_end.should be <= ancestor_end, failure_message: <<-MSG
+        Expected #{node.class_desc} end location (#{node_end}) \
+        to be <= #{ancestor.class_desc} end location (#{ancestor_end})
+
+        #{node_info}
+
+        #{ancestor_info}
+        MSG
+    end
+
+    @ancestor_stack.push node
+    true
+  end
+
+  def end_visit(node)
+    @ancestor_stack.pop
   end
 end
 
