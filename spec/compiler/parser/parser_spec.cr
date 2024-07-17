@@ -2412,6 +2412,8 @@ module Crystal
       assert_end_location "1 rescue 2"
       assert_end_location "1 ensure 2"
       assert_end_location "foo.bar= *baz"
+      assert_end_location "select when a then b end"
+      assert_end_location "select when a then b else c end"
 
       assert_syntax_error %({"a" : 1}), "space not allowed between named argument name and ':'"
       assert_syntax_error %({"a": 1, "b" : 2}), "space not allowed between named argument name and ':'"
